@@ -59,6 +59,21 @@ export function isAccountExistsError(error) {
   );
 }
 
+// True when the signup was refused by the DEVICE check rather than because the
+// email is taken. These are different situations and must not share a branch:
+// "account exists" means sign in, this one means no account was created and
+// signing in cannot work. It used to arrive named "Account exists", so the
+// caller below sent the customer to the sign-in page for an account that did
+// not exist — where their new password was refused, and Forgot Password had no
+// row to mail a link to. Two customers reported exactly that loop on
+// 2026-09-13.
+export function isDeviceLimitError(error) {
+  return (
+    getApiErrorStatus(error) === 409 &&
+    error?.data?.error?.name === 'Device limit'
+  );
+}
+
 // 'google' | 'apple' | 'local' — which method an existing account signs in with,
 // when the server told us, so the UI can point at the right button.
 export function getExistingProvider(error) {

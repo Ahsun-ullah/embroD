@@ -7,6 +7,7 @@ import { setAuthToken } from '@/lib/auth';
 import {
   getApiErrorMessage,
   isAccountExistsError,
+  isDeviceLimitError,
 } from '@/lib/utils/authErrors';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -82,6 +83,13 @@ const EmailOtp = ({ step, setStep, userDetailsData, pathName, otpMeta }) => {
         return router.push(
           `/auth/login${pathName ? `?pathName=${encodeURIComponent(pathName)}` : ''}`,
         );
+      }
+
+      // Refused by the device check — NO account was created, so the sign-in
+      // page above is the one place this customer must not be sent. Keep them
+      // here with an instruction that can actually resolve it.
+      if (isDeviceLimitError(error)) {
+        return ErrorToast('Please contact support', getApiErrorMessage(error), 10000);
       }
 
       return ErrorToast(
